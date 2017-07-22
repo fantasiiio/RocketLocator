@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="com.frankdev.rocketlocator.MySupportMapFragment" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bearing:"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/lblDistance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rocket Distance: 0"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/lblCurrentAltitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Current Altitude: 0"
+            android:textColor="#FFFFFF" />
+        
+        <TextView
+            android:id="@+id/lblMaxAltitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Max Altitude: 0"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:orientation="vertical"
+        android:padding="0dp" >
+
+        <ToggleButton
+            android:id="@+id/chkRadarBeep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="Radar beep"
+            android:textOff="Radar beep"
+            android:textOn="Radar beep" />
+
+        <ToggleButton
+            android:id="@+id/chkFollowMe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Follow me"
+            android:textOff="Follow me"
+            android:textOn="Follow me" />
+
+        <ToggleButton
+            android:id="@+id/chkRocketCompass"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Compass"
+            android:textOff="Compass"
+            android:textOn="Compass" />
+
+    </LinearLayout>
+</FrameLayout>

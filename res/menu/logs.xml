@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_toggle_scroll"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_toggle_scroll"/>
+    <item
+        android:id="@+id/menu_clear_logs"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/menu_clear_logs"/>
+</menu>

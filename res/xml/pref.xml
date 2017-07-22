@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:title="@string/app_name" >
+	<ListPreference 
+		android:dialogTitle="@string/pref_bluetooth_device_title"
+		android:title="@string/pref_bluetooth_device_title" 
+		android:key="@string/pref_bluetooth_device_key" 	
+		android:summary="@string/pref_bluetooth_device_summary"
+		android:entries="@array/measure_units_entries"
+		android:entryValues="@array/measure_units_entries"/>
+	<ListPreference
+		android:dialogTitle="@string/pref_measure_units_title"
+		android:title="@string/pref_measure_units_title"
+		android:key="@string/pref_measure_units_key"
+		android:summary="@string/pref_measure_units_summary"
+		android:entries="@array/measure_units_entries"
+		android:entryValues="@array/measure_units_entries"
+		android:defaultValue="metric" />
+    <CheckBoxPreference
+            android:key="@string/pref_logs_enabled_key"
+            android:title="@string/pref_logs_enabled_title" />	
+	<Preference
+		android:key="@string/pref_about_key"
+		android:persistent="false"
+		android:title="@string/pref_about_title"
+		android:summary="@string/pref_about_summary" />	
+</PreferenceScreen>
