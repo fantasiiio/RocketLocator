@@ -513,10 +513,12 @@ public class MainActivity extends FragmentActivity implements
 				return true;
 			case R.id.menu_provider_osm:
 				mTileProvider.SetBaseURL(getString(R.string.provider_baseUrl_osm));
+				mTileProvider.providerName = "osm";
 				ChangeProvider(R.string.provider_osm_ID);
 				return true;
 			case R.id.menu_provider_google:
 				mTileProvider.SetBaseURL(getString(R.string.provider_baseUrl_google));
+				mTileProvider.providerName = "google";
 				ChangeProvider(R.string.provider_google_ID);
 				return true;
 			case R.id.menu_download_map:
@@ -586,6 +588,7 @@ public class MainActivity extends FragmentActivity implements
 		mTileProvider = new MyUrlCachedTileProvider(512, 512, cachePath.getAbsolutePath());
 		mTileProvider.setMaxZoom(SharedHolder.maxZoom);
 		mTileProvider.SetBaseURL(getString(R.string.provider_baseUrl_google));
+		mTileProvider.providerName = "google";
 		ChangeProvider(R.string.provider_google_ID);
 		mTileProvider.setOffline(!online);
 		mTileOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mTileProvider));
