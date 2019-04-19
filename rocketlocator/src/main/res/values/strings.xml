@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rocket Locator</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_save_path">Save path</string>
+    <string name="menu_reset_blue_gps">Restart blue gps</string>
+    <string name="menu_load_last_pos">Load last Pos</string>
+    <string name="menu_logs_screen">Logs screen</string>
+    <string name="menu_random_pos">Random pos</string>
+    <string name="menu_reset_altitude">Reset altitude</string>
+    <string name="pref_logs_enabled_title">Enable log to file</string>
+    <string name="pref_bluetooth_device_title">Bluetooth Device</string>
+    <string name="pref_bluetooth_device_summary">"Actual Device : %s"</string>
+    <string name="pref_about_title">About</string>
+    <string name="pref_about_summary">GPS Rocket Locator</string>
+    <string name="msg_two_many_connection_problems">Too many connection problem</string>
+    <string name="msg_bluetooth_unsupported">Bluetooth Unsupported</string>
+    <string name="msg_bluetooth_disabled">Bluetooth Disabled</string>
+    <string name="msg_bluetooth_gps_unavaible">GPS Unavaible</string>
+    <string name="about_title">About</string>
+    <string name="about_version">BluetoothGPS4Droid version</string>
+    <string name="about_copyright_1">Copyright (&#169;) 2013 François Girard</string>
+    <string name="about_copyright_2">Thanks to BluetoothGPS4Droid Project for NMEA parser and Bluetooth connection</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_logs">Logs Screen</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_clear_logs">Clear logs</string>
+    <string name="menu_toggle_scroll">Toggle scroll</string>
+    <string name="pref_measure_units_title">Measurement Units</string>
+    <string name="pref_measure_units_summary">"Actual Units : %s"</string>
+    <string name="menu_map_provider">Map Provider</string>
+    <string name="provider_osm_title">Open Street Map</string>
+    <string name="provider_google_title">Google</string>
+    <string name="provider_google_ID">google</string>
+    <string name="provider_osm_ID">osm</string>
+    <string name="provider_baseUrl_google">https://khms{serverNumber}.google.com/kh/v=733&amp;x={x}&amp;y={y}&amp;z={z}</string>
+    <string name="provider_baseUrl_osm">https://a.tile.openstreetmap.org/{z}/{x}/{y}.png</string>
+    <string name="menu_download_map">Download Map</string>
+
+</resources>
