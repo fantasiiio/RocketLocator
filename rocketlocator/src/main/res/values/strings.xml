@@ -33,7 +33,7 @@
     <string name="provider_google_title">Google</string>
     <string name="provider_google_ID">google</string>
     <string name="provider_osm_ID">osm</string>
-    <string name="provider_baseUrl_google">https://khms{serverNumber}.google.com/kh/v=733&amp;x={x}&amp;y={y}&amp;z={z}</string>
+    <string name="provider_baseUrl_google">https://mt.google.com/vt/lyrs=y&amp;x={x}&amp;y={y}&amp;z={z}</string>
     <string name="provider_baseUrl_osm">https://a.tile.openstreetmap.org/{z}/{x}/{y}.png</string>
     <string name="menu_download_map">Download Map</string>
 

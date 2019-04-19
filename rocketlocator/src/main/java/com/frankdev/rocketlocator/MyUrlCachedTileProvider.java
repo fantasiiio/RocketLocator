@@ -25,19 +25,11 @@ public class MyUrlCachedTileProvider extends CachedTileProvider {
         this.baseUrl = baseUrl;
     }
 
-    private String getServerNumber(int x, int y){
-        return Integer.toString((x + 2 * y) % 4);
-    }
-
     @Override
     public URL getTileUrl(int x, int y, int zoom) {
         try {
-            if(providerName == "google") {
-                String url =  baseUrl.replace("{z}", "" + zoom).replace("{x}", "" + x).replace("{y}", "" + y).replace("{serverNumber}", getServerNumber(x,y));
-                return new URL(url);
-            } else {
-                return new URL(baseUrl.replace("{z}", "" + zoom).replace("{x}", "" + x).replace("{y}", "" + y));
-            }
+            return new URL(baseUrl.replace("{z}", "" + zoom).replace("{x}", "" + x).replace("{y}", "" + y));
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
