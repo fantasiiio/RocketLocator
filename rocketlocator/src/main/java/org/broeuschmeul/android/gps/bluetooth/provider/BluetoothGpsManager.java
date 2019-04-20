@@ -507,7 +507,7 @@ public class BluetoothGpsManager extends Observable {
 		       	Sounds.gps_disconnected.start();
 			}
 
-			if(nmeaValues.getCommand() != null &&  nmeaValues.getCommand().equals("GPGGA")){
+			if(nmeaValues != null && nmeaValues.getCommand() != null &&  nmeaValues.getCommand().equals("GPGGA")){
 		       	SharedHolder.getInstance().getLogs().v(LOG_TAG, nmeaSentence);
 			    setChanged();
 			    notifyObservers(nmeaValues);
