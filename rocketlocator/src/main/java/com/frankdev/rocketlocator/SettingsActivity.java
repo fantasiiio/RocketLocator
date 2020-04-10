@@ -18,33 +18,30 @@
  
 package com.frankdev.rocketlocator;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.preference.Preference.OnPreferenceChangeListener;
-import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.view.Menu;
 import android.view.View;
 
 public class SettingsActivity extends PreferenceActivity implements OnPreferenceChangeListener, OnSharedPreferenceChangeListener{
 
-	private static final String LOG_TAG = "RocketLocator";
-
-	private SharedPreferences sharedPref ;
-	private BluetoothAdapter bluetoothAdapter = null;
 	public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
 	public static final String PREF_ABOUT = "about";
 	public static final String PREF_LOGS_ENABLED = "logsEnabled";
 	public static final String PREF_MEASURE_UNIT = "measureUnit";
+
+	private static final String LOG_TAG = "RocketLocator";
+
+	private SharedPreferences sharedPref ;
+	private BluetoothAdapter bluetoothAdapter;
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -54,7 +51,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        Preference pref = findPreference(SettingsActivity.PREF_ABOUT);
+        final Preference pref = findPreference(SettingsActivity.PREF_ABOUT);
         pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {		
 			@Override
 			public boolean onPreferenceClick(Preference preference) {
@@ -62,12 +59,11 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				return true;
 			}
 		});
-        
 	}
 
 	@Override
 	protected void onResume() {
-		this.updateDevicePreferenceList();
+		this.updateDevicePreferenceSummary();
 		super.onResume();
 	}
 
@@ -87,32 +83,6 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         prefDevices.setSummary(getString(R.string.pref_bluetooth_device_summary, deviceName));
     } 
 
-	@SuppressWarnings("deprecation")
-	private void updateDevicePreferenceList(){
-        // update bluetooth device summary
-		updateDevicePreferenceSummary();
-		// update bluetooth device list
-        ListPreference prefDevices = (ListPreference)findPreference(SettingsActivity.PREF_BLUETOOTH_DEVICE);
-        Set<BluetoothDevice> pairedDevices = new HashSet<BluetoothDevice>();
-        if (bluetoothAdapter != null){
-        	pairedDevices = bluetoothAdapter.getBondedDevices();  
-        }
-        String[] entryValues = new String[pairedDevices.size()];
-        String[] entries = new String[pairedDevices.size()];
-        int i = 0;
-    	    // Loop through paired devices
-        for (BluetoothDevice device : pairedDevices) {
-        	// Add the name and address to the ListPreference enties and entyValues
-			SharedHolder.getInstance().getLogs().v(LOG_TAG, "device: "+device.getName() + " -- " + device.getAddress());
-        	entryValues[i] = device.getAddress();
-            entries[i] = device.getName();
-            i++;
-        }
-        prefDevices.setEntryValues(entryValues);
-        prefDevices.setEntries(entries);
-        this.onContentChanged();
-    }	
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -131,7 +101,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		} else if(SettingsActivity.PREF_MEASURE_UNIT.equals(key)) {
 			this.updateMeasureUnit();
 		}
-		this.updateDevicePreferenceList();
+		this.updateDevicePreferenceSummary();
 	}
 
 	private void enableFileLog(SharedPreferences sharedPreferences) {

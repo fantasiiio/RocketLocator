@@ -2,13 +2,11 @@
 <PreferenceScreen
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:title="@string/app_name" >
-	<ListPreference 
+	<com.frankdev.rocketlocator.BleListPreference
 		android:dialogTitle="@string/pref_bluetooth_device_title"
 		android:title="@string/pref_bluetooth_device_title" 
 		android:key="@string/pref_bluetooth_device_key" 	
-		android:summary="@string/pref_bluetooth_device_summary"
-		android:entries="@array/measure_units_entries"
-		android:entryValues="@array/measure_units_entries"/>
+		android:summary="@string/pref_bluetooth_device_summary" />
 	<ListPreference
 		android:dialogTitle="@string/pref_measure_units_title"
 		android:title="@string/pref_measure_units_title"
