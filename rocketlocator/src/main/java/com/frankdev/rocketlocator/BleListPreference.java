@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013 Fran�ois Girard
- * Contributor: Balazs Mihaly | mihu86
+ * Copyright (C) 2020 Balazs Mihaly | mihu86
  *
  * This file is part of Rocket Finder.
  *
@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Handler;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
@@ -66,14 +67,23 @@ public class BleListPreference extends ListPreference {
             @Override
             public void run() {
                 bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                scanCallback = new BluetoothAdapter.LeScanCallback() {
-                    @Override
-                    public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                        Log.v(LOG_TAG, "Found device: " + device.getAddress());
-                        addDevice(new BleListPreference.Device(device.getAddress(), device.getName()));
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+                        getSharedPreferences().getBoolean(SettingsActivity.PREF_USE_BLE, false)) {
+                    scanCallback = new BluetoothAdapter.LeScanCallback() {
+                        @Override
+                        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                            SharedHolder.getInstance().getLogs().v(LOG_TAG, "Found device: " + device.getAddress());
+                            addDevice(new BleListPreference.Device(device.getAddress(), device.getName()));
+                        }
+                    };
+                    bluetoothAdapter.startLeScan(scanCallback);
+                } else {
+                    for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
+                        SharedHolder.getInstance().getLogs().v(LOG_TAG, "device: " + device.getName() + " -- " + device.getAddress());
+                        addDevice(new Device(device.getAddress(), device.getName()));
                     }
-                };
-                bluetoothAdapter.startLeScan(scanCallback);
+                }
             }
         });
 
@@ -102,11 +112,14 @@ public class BleListPreference extends ListPreference {
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
-        bluetoothAdapter.stopLeScan(scanCallback);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+                bluetoothAdapter != null && scanCallback != null) {
+            bluetoothAdapter.stopLeScan(scanCallback);
+        }
 
-        if (positiveResult && selectedIndex >= 0) {
+        if (positiveResult && listAdapter != null && selectedIndex >= 0) {
             String value = listAdapter.getItem(selectedIndex).getAddress();
-            Log.d(LOG_TAG, "Selected BLE device: " + value);
+            SharedHolder.getInstance().getLogs().d(LOG_TAG, "Selected BT device: " + value);
             if (callChangeListener(value)) {
                 setValue(value);
             }

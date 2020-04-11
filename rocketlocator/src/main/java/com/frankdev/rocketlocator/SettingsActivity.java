@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -33,6 +34,7 @@ import android.view.View;
 
 public class SettingsActivity extends PreferenceActivity implements OnPreferenceChangeListener, OnSharedPreferenceChangeListener{
 
+	public static final String PREF_USE_BLE = "ble";
 	public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
 	public static final String PREF_ABOUT = "about";
 	public static final String PREF_LOGS_ENABLED = "logsEnabled";
@@ -59,6 +61,9 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				return true;
 			}
 		});
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        	findPreference(SettingsActivity.PREF_USE_BLE).setEnabled(false);
+		}
 	}
 
 	@Override

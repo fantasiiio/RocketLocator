@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.broeuschmeul.android.gps.bluetooth.provider.BleBluetoothGpsManager;
 import org.broeuschmeul.android.gps.bluetooth.provider.BluetoothGpsManager;
+import org.broeuschmeul.android.gps.bluetooth.provider.ClassicBluetoothGpsManager;
 
 import com.frankdev.rocketlocator.TouchableWrapper.OnMapMoveListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -302,7 +304,11 @@ public class MainActivity extends FragmentActivity implements
 
         BluetoothGpsManager blueGpsMan = SharedHolder.getInstance().getBlueGpsMan();
         if (blueGpsMan == null) {
-            blueGpsMan = new BluetoothGpsManager(getBaseContext(), deviceAddress, 50);
+            if (sharedPreferences.getBoolean(SettingsActivity.PREF_USE_BLE, false)) {
+                blueGpsMan = new BleBluetoothGpsManager();
+            } else {
+                blueGpsMan = new ClassicBluetoothGpsManager(getBaseContext(), deviceAddress, 50);
+            }
             SharedHolder.getInstance().setBlueGpsMan(blueGpsMan);
             blueGpsMan.addObserver(this);
             /*

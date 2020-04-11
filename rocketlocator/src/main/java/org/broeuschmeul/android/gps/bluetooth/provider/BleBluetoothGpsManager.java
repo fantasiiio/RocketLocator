@@ -18,18 +18,39 @@
 
 package org.broeuschmeul.android.gps.bluetooth.provider;
 
-import java.util.Observable;
 
-public abstract class BluetoothGpsManager extends Observable {
-    public abstract int getDisableReason();
+import android.annotation.TargetApi;
+import android.os.Build;
 
-    public abstract boolean isEnabled();
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+public class BleBluetoothGpsManager extends BluetoothGpsManager {
+    @Override
+    public int getDisableReason() {
+        return 0;
+    }
 
-    public abstract boolean enable();
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
 
-    public abstract void startConnectThread();
+    @Override
+    public boolean enable() {
+        return false;
+    }
 
-    public abstract void disable(int reasonId);
+    @Override
+    public void startConnectThread() {
 
-    public abstract void disable(boolean restart);
+    }
+
+    @Override
+    public void disable(int reasonId) {
+
+    }
+
+    @Override
+    public void disable(boolean restart) {
+
+    }
 }
