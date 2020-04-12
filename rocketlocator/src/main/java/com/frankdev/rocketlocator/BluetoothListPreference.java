@@ -28,7 +28,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.preference.ListPreference;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,24 +37,24 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BleListPreference extends ListPreference {
+public class BluetoothListPreference extends ListPreference {
 
-    private static final String LOG_TAG = "RocketLocatorBLE";
+    private static final String LOG_TAG = "RocketLocator";
 
     private Handler handler;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothAdapter.LeScanCallback scanCallback;
 
-    private BleAdapter listAdapter;
+    private ListAdapter listAdapter;
     private final LayoutInflater inflater;
     private int selectedIndex;
 
-    public BleListPreference(Context context) {
+    public BluetoothListPreference(Context context) {
         super(context);
         inflater = LayoutInflater.from(context);
     }
 
-    public BleListPreference(Context context, AttributeSet attrs) {
+    public BluetoothListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         inflater = LayoutInflater.from(context);
     }
@@ -74,7 +73,7 @@ public class BleListPreference extends ListPreference {
                         @Override
                         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
                             SharedHolder.getInstance().getLogs().v(LOG_TAG, "Found device: " + device.getAddress());
-                            addDevice(new BleListPreference.Device(device.getAddress(), device.getName()));
+                            addDevice(new BluetoothListPreference.Device(device.getAddress(), device.getName()));
                         }
                     };
                     bluetoothAdapter.startLeScan(scanCallback);
@@ -87,7 +86,7 @@ public class BleListPreference extends ListPreference {
             }
         });
 
-        listAdapter = new BleAdapter();
+        listAdapter = new ListAdapter();
         builder.setAdapter(listAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -97,7 +96,7 @@ public class BleListPreference extends ListPreference {
                  * Clicking on an item simulates the positive button
                  * click, and dismisses the dialog.
                  */
-                BleListPreference.this.onClick(dialog, DialogInterface.BUTTON_POSITIVE);
+                BluetoothListPreference.this.onClick(dialog, DialogInterface.BUTTON_POSITIVE);
                 dialog.dismiss();
             }
         });
@@ -131,7 +130,7 @@ public class BleListPreference extends ListPreference {
         listAdapter.notifyDataSetChanged();
     }
 
-    class BleAdapter extends BaseAdapter {
+    class ListAdapter extends BaseAdapter {
 
         private List<Device> devices = new ArrayList<>();
 

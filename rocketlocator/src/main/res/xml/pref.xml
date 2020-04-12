@@ -5,7 +5,7 @@
     <CheckBoxPreference
         android:title="@string/pref_use_ble_title"
         android:key="@string/pref_use_ble_key" />
-    <com.frankdev.rocketlocator.BleListPreference
+    <com.frankdev.rocketlocator.BluetoothListPreference
 		android:dialogTitle="@string/pref_bluetooth_device_title"
 		android:title="@string/pref_bluetooth_device_title" 
 		android:key="@string/pref_bluetooth_device_key" 	
