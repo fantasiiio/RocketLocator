@@ -20,6 +20,7 @@ package com.frankdev.rocketlocator;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Build;
@@ -29,8 +30,11 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.View;
+
+import org.broeuschmeul.android.gps.bluetooth.provider.BluetoothGpsManager;
 
 public class SettingsActivity extends PreferenceActivity implements OnPreferenceChangeListener, OnSharedPreferenceChangeListener{
 
@@ -44,6 +48,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 
 	private SharedPreferences sharedPref ;
 	private BluetoothAdapter bluetoothAdapter;
+	private boolean gpsReinit;
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -53,6 +58,8 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        gpsReinit = false;
+
         final Preference pref = findPreference(SettingsActivity.PREF_ABOUT);
         pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {		
 			@Override
@@ -61,9 +68,40 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				return true;
 			}
 		});
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        	findPreference(SettingsActivity.PREF_USE_BLE).setEnabled(false);
+
+		Preference blePreference = findPreference(SettingsActivity.PREF_USE_BLE);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+			blePreference.setEnabled(false);
+		} else {
+			blePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference preference) {
+					SharedPreferences.Editor editor = sharedPref.edit();
+					editor.remove(SettingsActivity.PREF_BLUETOOTH_DEVICE);
+					editor.apply();
+					updateDevicePreferenceSummary();
+					clearCurrentGpsManager();
+					return true;
+				}
+			});
 		}
+
+        findPreference(SettingsActivity.PREF_BLUETOOTH_DEVICE).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				clearCurrentGpsManager();
+				return true;
+			}
+		});
+	}
+
+	private void clearCurrentGpsManager() {
+		BluetoothGpsManager blueGpsMan = SharedHolder.getInstance().getBlueGpsMan();
+		if (blueGpsMan != null && blueGpsMan.isEnabled()) {
+			blueGpsMan.disable(false);
+		}
+		SharedHolder.getInstance().setBlueGpsMan(null);
+		gpsReinit = true;
 	}
 
 	@Override
@@ -100,6 +138,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 
 
 		if (SettingsActivity.PREF_BLUETOOTH_DEVICE.equals(key)){
+			this.gpsReinit = true;
 			this.updateDevicePreferenceSummary();
 		} else if(SettingsActivity.PREF_LOGS_ENABLED.equals(key)){
 			this.enableFileLog(sharedPreferences);
@@ -129,5 +168,15 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         builder.setView(messageView);
 		builder.show();
 	}
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		if (gpsReinit) {
+			Intent gpsReinit = new Intent(MainActivity.GPS_REINIT);
+			LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(gpsReinit);
+		}
+	}
+
 }

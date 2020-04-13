@@ -48,6 +48,8 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -73,6 +75,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -86,6 +89,7 @@ import android.widget.ToggleButton;
 public class MainActivity extends FragmentActivity implements
         OnMyLocationChangeListener, SensorEventListener, Observer, OnMapMoveListener, OnMapReadyCallback {
 
+    public static final String GPS_REINIT = "gps_reinit";
     private final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
     private final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
     private final String mapCacheFolder = "mapCache/";
@@ -247,6 +251,13 @@ public class MainActivity extends FragmentActivity implements
         beepEnabled = false;
         radarBeepThread radarBeep = new radarBeepThread();
         radarBeep.start();
+
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                initBluetoothGPS();
+            }
+        }, new IntentFilter(GPS_REINIT));
     }
 
     private void checkBluetoothEnabled() {
@@ -305,7 +316,7 @@ public class MainActivity extends FragmentActivity implements
         BluetoothGpsManager blueGpsMan = SharedHolder.getInstance().getBlueGpsMan();
         if (blueGpsMan == null) {
             if (sharedPreferences.getBoolean(SettingsActivity.PREF_USE_BLE, false)) {
-                blueGpsMan = new BleBluetoothGpsManager();
+                blueGpsMan = new BleBluetoothGpsManager(getBaseContext(), deviceAddress, 20);
             } else {
                 blueGpsMan = new ClassicBluetoothGpsManager(getBaseContext(), deviceAddress, 50);
             }

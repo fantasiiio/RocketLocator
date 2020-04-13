@@ -154,9 +154,9 @@ public class ClassicBluetoothGpsManager extends BluetoothGpsManager {
 							e.printStackTrace();
 						}
 				        
-				        if(sentenseStr != ""){
+				        if(enabled && sentenseStr != null && !sentenseStr.isEmpty()){
 							//SharedHolder.getInstance().getLogs().v(LOG_TAG, "data: "+System.currentTimeMillis()+" "+s);
-							notifyNmeaSentence(sentenseStr + "\r\n");
+							notifyNmeaSentence(sentenseStr);
 				        }
 						lastRead = SystemClock.uptimeMillis();
 					} else {
@@ -227,7 +227,6 @@ public class ClassicBluetoothGpsManager extends BluetoothGpsManager {
 	private Context context;
 	private BluetoothSocket gpsSocket;
 	private String gpsDeviceAddress;
-	private NmeaParser parser = new NmeaParser(10f);
 	private boolean enabled = false;
 	private ScheduledExecutorService connectionAndReadingPool;
 	private ConnectedGps connectedGps;
@@ -276,7 +275,7 @@ public class ClassicBluetoothGpsManager extends BluetoothGpsManager {
 	 * @return
 	 */
 	@Override
-	public synchronized boolean enable() {
+	public synchronized void enable() {
 		//notificationManager.cancel(R.string.service_closed_because_connection_problem_notification_title);
 		if (! enabled){
         	SharedHolder.getInstance().getLogs().d(LOG_TAG, "enabling Bluetooth GPS manager");
@@ -330,10 +329,8 @@ public class ClassicBluetoothGpsManager extends BluetoothGpsManager {
 				}
 			}
 		}
-		return this.enabled;
 	}
 
-	@Override
 	public void startConnectThread() {
 		Runnable connectThread = new Runnable() {							
 			@Override
@@ -496,28 +493,4 @@ public class ClassicBluetoothGpsManager extends BluetoothGpsManager {
 	}
 
 
-	/**
-	 * Notifies the reception of a NMEA sentence from the bluetooth GPS to registered NMEA listeners.
-	 * 
-	 * @param nmeaSentence	the complete NMEA sentence received from the bluetooth GPS (i.e. $....*XY where XY is the checksum)
-	 */
-	private void notifyNmeaSentence(final String nmeaSentence){
-		if (enabled){
-			NmeaValues nmeaValues = null;
-			try {
-				nmeaValues = parser.parseNmeaSentence(nmeaSentence);
-			} catch (Exception e){				
-		       	SharedHolder.getInstance().getLogs().e(LOG_TAG, "error while parsing NMEA sentence: "+nmeaSentence, e);
-		       	nmeaValues = null;
-		       	Sounds.gps_disconnected.start();
-			}
-
-			if(nmeaValues != null && nmeaValues.getCommand() != null &&  nmeaValues.getCommand().equals("GPGGA")){
-		       	SharedHolder.getInstance().getLogs().v(LOG_TAG, nmeaSentence);
-			    setChanged();
-			    notifyObservers(nmeaValues);
-			}
-		}
-	}
-	
 }
