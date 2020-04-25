@@ -31,6 +31,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.util.Consumer;
 import android.widget.Toast;
 
 import com.frankdev.rocketlocator.SharedHolder;
@@ -39,6 +40,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BleBluetoothGpsManager extends BluetoothGpsManager {
@@ -61,6 +63,7 @@ public class BleBluetoothGpsManager extends BluetoothGpsManager {
     private BluetoothDevice device;
     private BluetoothGatt gatt;
     private Handler uiHandler;
+    private NmeaInputMerger merger = new NmeaInputMerger();
 
     public BleBluetoothGpsManager(Context context, String deviceAddress, int maxRetries) {
         if (deviceAddress == null || deviceAddress.trim().isEmpty()) {
@@ -174,10 +177,15 @@ public class BleBluetoothGpsManager extends BluetoothGpsManager {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             try {
-                String message = new String(characteristic.getValue(), "US-ASCII"); // StandardCharsets.US_ASCII
-                SharedHolder.getInstance().getLogs().v(LOG_TAG, "Received: " + message);
-                if (message != null && !message.isEmpty()) {
-                    notifyNmeaSentence(message);
+                String messagePart = new String(characteristic.getValue(), "US-ASCII"); // StandardCharsets.US_ASCII
+                SharedHolder.getInstance().getLogs().v(LOG_TAG, "Received: " + messagePart);
+                if (!messagePart.isEmpty()) {
+                    merger.handleMessagePart(messagePart, new Consumer<String>() {
+                        @Override
+                        public void accept(String nmeaSentence) {
+                            notifyNmeaSentence(nmeaSentence);
+                        }
+                    });
                 }
             } catch (UnsupportedEncodingException e) {
                 throw new IllegalStateException("Standard ASCII not known...");
@@ -186,4 +194,38 @@ public class BleBluetoothGpsManager extends BluetoothGpsManager {
 
     }
 
+    public static class NmeaInputMerger {
+        private static final String $ = "$";
+        private StringBuilder inputBuffer = new StringBuilder();
+
+        public void handleMessagePart(String messagePart, Consumer<String> action) {
+            String[] parts = messagePart.replaceAll("\\s", "").split(Pattern.quote($));
+
+            int start = 0;
+            if (parts[0].isEmpty()) {
+                if (inputBuffer.length() > 0) {
+                    callAction(action);
+                }
+
+                start++;
+                inputBuffer.append($);
+            }
+
+            inputBuffer.append(parts[start++]);
+            if (parts.length > start) {
+                for (int i = start; i < parts.length; i++) {
+                    callAction(action);
+                    inputBuffer.append($).append(parts[i]);
+                }
+            }
+        }
+
+        private void callAction(Consumer<String> action) {
+            String nmeaSentence = inputBuffer.toString();
+            SharedHolder.getInstance().getLogs().v(LOG_TAG, "NMEA: " + nmeaSentence);
+            action.accept(nmeaSentence);
+            inputBuffer.setLength(0);
+        }
+
+    }
 }
