@@ -51,6 +51,14 @@ public class NmeaParser {
 	 */
 	private static final String LOG_TAG = "BlueGPS";
 
+	// GP: GPS, GN: GALILEO, GL: GLONASS, GA: multi
+	private static final String POS_PREFIX_REGEX = "G[PNLA]";
+	private static final Pattern GGA = Pattern.compile(POS_PREFIX_REGEX + "GGA");
+	private static final Pattern RMC = Pattern.compile(POS_PREFIX_REGEX + "RMC");
+	private static final Pattern GSA = Pattern.compile(POS_PREFIX_REGEX + "GSA");
+	private static final Pattern VTG = Pattern.compile(POS_PREFIX_REGEX + "VTG");
+	private static final Pattern GLL = Pattern.compile(POS_PREFIX_REGEX + "GLL");
+
 	private boolean hasGGA = false;
 	private boolean hasRMC = false;
 	private float precision = 10f;
@@ -84,7 +92,7 @@ public class NmeaParser {
 			SimpleStringSplitter splitter = new SimpleStringSplitter(',');
 			splitter.setString(sentence);
 			command = splitter.next();
-			if (command.equals("GPGGA")){
+			if (GGA.matcher(command).matches()) {
 				if(!Sounds.gps_connected.isPlaying()){
 					Sounds.pulse.start();
 				}
@@ -183,7 +191,7 @@ public class NmeaParser {
 						notifyStatusChanged(LocationProvider.TEMPORARILY_UNAVAILABLE, null, updateTime);
 					}	*/			
 				}
-			} else if (command.equals("GPRMC")){
+			} else if (RMC.matcher(command).matches()) {
 				/* $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A
 	
 				   Where:
@@ -246,7 +254,7 @@ public class NmeaParser {
 						notifyStatusChanged(LocationProvider.TEMPORARILY_UNAVAILABLE, null, updateTime);
 					}*/				
 				}		
-			} else if (command.equals("GPGSA")){
+			} else if (GSA.matcher(command).matches()) {
 				/*  $GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39
 	
 					Where:
@@ -275,7 +283,7 @@ public class NmeaParser {
 				String hdop = splitter.next();
 				// Vertical dilution of precision (float)
 				String vdop = splitter.next();			
-			} else if (command.equals("GPVTG")){
+			} else if (VTG.matcher(command).matches()) {
 				/*  $GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48
 					
 					where:
@@ -304,7 +312,7 @@ public class NmeaParser {
 				splitter.next();
 				// for NMEA 0183 version 3.00 active the Mode indicator field is added
 				// Mode indicator, (A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator )
-			} else if (command.equals("GPGLL")){
+			} else if (GLL.matcher(command).matches()) {
 				/*  $GPGLL,4916.45,N,12311.12,W,225444,A,*1D
 					
 					Where:
