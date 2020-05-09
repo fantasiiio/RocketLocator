@@ -43,12 +43,14 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 	public static final String PREF_ABOUT = "about";
 	public static final String PREF_LOGS_ENABLED = "logsEnabled";
 	public static final String PREF_MEASURE_UNIT = "measureUnit";
+	public static final String PREF_EXTERNAL_CACHE = "externalCache";
 
 	private static final String LOG_TAG = "RocketLocator";
 
 	private SharedPreferences sharedPref ;
 	private BluetoothAdapter bluetoothAdapter;
 	private boolean gpsReinit;
+	private boolean extCacheChanged;
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -136,14 +138,20 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-
-		if (SettingsActivity.PREF_BLUETOOTH_DEVICE.equals(key)){
-			this.gpsReinit = true;
-			this.updateDevicePreferenceSummary();
-		} else if(SettingsActivity.PREF_LOGS_ENABLED.equals(key)){
-			this.enableFileLog(sharedPreferences);
-		} else if(SettingsActivity.PREF_MEASURE_UNIT.equals(key)) {
-			this.updateMeasureUnit();
+		switch (key) {
+			case SettingsActivity.PREF_BLUETOOTH_DEVICE:
+				this.gpsReinit = true;
+				this.updateDevicePreferenceSummary();
+				break;
+			case SettingsActivity.PREF_LOGS_ENABLED:
+				this.enableFileLog(sharedPreferences);
+				break;
+			case SettingsActivity.PREF_MEASURE_UNIT:
+				this.updateMeasureUnit();
+				break;
+			case SettingsActivity.PREF_EXTERNAL_CACHE:
+				this.extCacheChanged = true;
+				break;
 		}
 		this.updateDevicePreferenceSummary();
 	}
@@ -173,9 +181,14 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 	protected void onDestroy() {
 		super.onDestroy();
 
+		LocalBroadcastManager localBroadcast = LocalBroadcastManager.getInstance(getApplicationContext());
 		if (gpsReinit) {
 			Intent gpsReinit = new Intent(MainActivity.GPS_REINIT);
-			LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(gpsReinit);
+			localBroadcast.sendBroadcast(gpsReinit);
+		}
+		if (extCacheChanged) {
+			Intent cacheReload = new Intent(MainActivity.CACHE_RELOAD);
+			localBroadcast.sendBroadcast(cacheReload);
 		}
 	}
 

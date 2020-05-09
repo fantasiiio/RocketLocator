@@ -20,7 +20,11 @@
 		android:defaultValue="metric" />
     <CheckBoxPreference
             android:key="@string/pref_logs_enabled_key"
-            android:title="@string/pref_logs_enabled_title" />	
+            android:title="@string/pref_logs_enabled_title" />
+	<CheckBoxPreference
+		android:key="@string/pref_external_cache_key"
+		android:title="@string/external_cache"
+		android:defaultValue="false" />
 	<Preference
 		android:key="@string/pref_about_key"
 		android:persistent="false"

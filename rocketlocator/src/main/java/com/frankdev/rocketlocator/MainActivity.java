@@ -78,7 +78,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
@@ -90,6 +89,7 @@ public class MainActivity extends FragmentActivity implements
         OnMyLocationChangeListener, SensorEventListener, Observer, OnMapMoveListener, OnMapReadyCallback {
 
     public static final String GPS_REINIT = "gps_reinit";
+    public static final String CACHE_RELOAD = "cache_reload";
     private final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1;
     private final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
     private final String mapCacheFolder = "mapCache/";
@@ -141,7 +141,7 @@ public class MainActivity extends FragmentActivity implements
     private TileOverlay mTileOverlay;
     private TileOverlay mTileCountOverlay;
 
-    File sdCard;
+    File cacheDir;
 
     ProgressDialog progressBar;
 
@@ -252,12 +252,23 @@ public class MainActivity extends FragmentActivity implements
         radarBeepThread radarBeep = new radarBeepThread();
         radarBeep.start();
 
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+        setupBroadcastReceiver();
+    }
+
+    private void setupBroadcastReceiver() {
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
+        localBroadcastManager.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 initBluetoothGPS();
             }
         }, new IntentFilter(GPS_REINIT));
+        localBroadcastManager.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                setUpMap();
+            }
+        }, new IntentFilter(CACHE_RELOAD));
     }
 
     private void checkBluetoothEnabled() {
@@ -579,7 +590,7 @@ public class MainActivity extends FragmentActivity implements
 
     private void ChangeProvider(int providerID) {
         File cachePath;
-        cachePath = new File(sdCard.getAbsolutePath() + "/" + mapCacheFolder + getString(providerID));
+        cachePath = new File(cacheDir.getAbsolutePath() + "/" + mapCacheFolder + getString(providerID));
         if (!cachePath.isDirectory()) {
             cachePath.mkdir();
         }
@@ -607,15 +618,17 @@ public class MainActivity extends FragmentActivity implements
 
     @SuppressLint("MissingPermission")
     private void setUpMap() {
+        mMap.clear();
         //mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationChangeListener(this);
 
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
         //MyUrlTileProvider mTileProvider = new MyUrlTileProvider(512, 512, mUrl);
-        sdCard = Environment.getExternalStorageDirectory();
+        cacheDir = sharedPreferences.getBoolean(SettingsActivity.PREF_EXTERNAL_CACHE, false) ?
+                Environment.getExternalStorageDirectory() : getCacheDir();
 
-        String path = sdCard.getAbsolutePath();
+        String path = cacheDir.getAbsolutePath();
         path += "/" + mapCacheFolder;
         File cachePath = new File(path);
         if(!cachePath.isDirectory()) {

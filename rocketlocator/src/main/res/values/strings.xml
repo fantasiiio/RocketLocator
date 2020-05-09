@@ -37,5 +37,6 @@
     <string name="provider_baseUrl_google">https://mt.google.com/vt/lyrs=y&amp;x={x}&amp;y={y}&amp;z={z}</string>
     <string name="provider_baseUrl_osm">https://a.tile.openstreetmap.org/{z}/{x}/{y}.png</string>
     <string name="menu_download_map">Download Map</string>
+    <string name="external_cache">Store map cache in external dir</string>
 
 </resources>
