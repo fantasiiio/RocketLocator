@@ -65,6 +65,11 @@ public class ObservableLogs extends Observable {
 		Log.v(tag, msg);
 		AddToLogs(msg);
 	}
+
+	public void w(String tag, String msg){
+		Log.w(tag, msg);
+		AddToLogs(msg);
+	}
 	
 	public void appendLogFile(String text) {
 		File logFile = new File(logDirectory + logFileName);

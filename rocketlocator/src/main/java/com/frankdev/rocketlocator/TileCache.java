@@ -1,10 +1,6 @@
 package com.frankdev.rocketlocator;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Point;
-
-import com.google.android.gms.common.data.DataBuffer;
+import com.google.android.gms.common.util.IOUtils;
 import com.google.android.gms.maps.model.Tile;
 
 import java.io.*;
@@ -23,13 +19,13 @@ public class TileCache {
     }
 
     public boolean tileExists(int x,int y, int zoom){
-        String filepath = cachePath + "/" + zoom + "_"+ x +"_" + y + ".png";
+        String filepath = getFilepath(x, y, zoom);
         File f = new File(filepath);
         return f.exists();
     }
 
     public Tile getTile(int x,int y, int zoom){
-        String filepath = cachePath + "/" + zoom + "_"+ x +"_" + y + ".png";
+        String filepath = getFilepath(x, y, zoom);
 
         File f = new File(filepath);
         if(!f.exists()) {
@@ -39,8 +35,9 @@ public class TileCache {
         File file = new File(filepath);
         int size = (int) file.length();
         byte[] bytes = new byte[size];
+        BufferedInputStream buf = null;
         try {
-            BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+            buf = new BufferedInputStream(new FileInputStream(file));
             buf.read(bytes, 0, bytes.length);
             buf.close();
         } catch (FileNotFoundException e) {
@@ -49,28 +46,36 @@ public class TileCache {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            IOUtils.closeQuietly(buf);
         }
 
         return new Tile(width, height, bytes);
     }
 
     public void putTile(int x,int y, int zoom, byte[] data) {
-        String filepath = cachePath + "/" + zoom + "_"+ x +"_" + y + ".png";
+        String filepath = getFilepath(x, y, zoom);
 
         File f = new File(filepath);
         if(f.exists()) {
             return;
         }
 
+        BufferedOutputStream buf = null;
         try {
-            BufferedOutputStream buf = new BufferedOutputStream(new FileOutputStream(filepath));
+            buf = new BufferedOutputStream(new FileOutputStream(filepath));
             buf.write(data);
             buf.flush();
             buf.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(buf);
         }
+    }
+
+    private String getFilepath(int x, int y, int zoom) {
+        return cachePath + "/" + zoom + "_" + x + "_" + y + ".dat";
     }
 
     public String getCachePath() {

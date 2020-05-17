@@ -9,6 +9,7 @@
     <string name="menu_random_pos">Random pos</string>
     <string name="menu_reset_altitude">Reset altitude</string>
     <string name="pref_logs_enabled_title">Enable log to file</string>
+    <string name="pref_use_ble_title">Use Bluetooth LE</string>
     <string name="pref_bluetooth_device_title">Bluetooth Device</string>
     <string name="pref_bluetooth_device_summary">"Actual Device : %s"</string>
     <string name="pref_about_title">About</string>
@@ -36,5 +37,6 @@
     <string name="provider_baseUrl_google">https://mt.google.com/vt/lyrs=y&amp;x={x}&amp;y={y}&amp;z={z}</string>
     <string name="provider_baseUrl_osm">https://a.tile.openstreetmap.org/{z}/{x}/{y}.png</string>
     <string name="menu_download_map">Download Map</string>
+    <string name="external_cache">Store map cache in external dir</string>
 
 </resources>

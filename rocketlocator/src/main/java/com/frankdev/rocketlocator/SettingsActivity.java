@@ -18,33 +18,39 @@
  
 package com.frankdev.rocketlocator;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.preference.Preference.OnPreferenceChangeListener;
-import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.View;
 
+import org.broeuschmeul.android.gps.bluetooth.provider.BluetoothGpsManager;
+
 public class SettingsActivity extends PreferenceActivity implements OnPreferenceChangeListener, OnSharedPreferenceChangeListener{
 
-	private static final String LOG_TAG = "RocketLocator";
-
-	private SharedPreferences sharedPref ;
-	private BluetoothAdapter bluetoothAdapter = null;
+	public static final String PREF_USE_BLE = "ble";
 	public static final String PREF_BLUETOOTH_DEVICE = "bluetoothDevice";
 	public static final String PREF_ABOUT = "about";
 	public static final String PREF_LOGS_ENABLED = "logsEnabled";
 	public static final String PREF_MEASURE_UNIT = "measureUnit";
+	public static final String PREF_EXTERNAL_CACHE = "externalCache";
+
+	private static final String LOG_TAG = "RocketLocator";
+
+	private SharedPreferences sharedPref ;
+	private BluetoothAdapter bluetoothAdapter;
+	private boolean gpsReinit;
+	private boolean extCacheChanged;
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -54,7 +60,9 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        Preference pref = findPreference(SettingsActivity.PREF_ABOUT);
+        gpsReinit = false;
+
+        final Preference pref = findPreference(SettingsActivity.PREF_ABOUT);
         pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {		
 			@Override
 			public boolean onPreferenceClick(Preference preference) {
@@ -62,12 +70,45 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				return true;
 			}
 		});
-        
+
+		Preference blePreference = findPreference(SettingsActivity.PREF_USE_BLE);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+			blePreference.setEnabled(false);
+		} else {
+			blePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+				@Override
+				public boolean onPreferenceClick(Preference preference) {
+					SharedPreferences.Editor editor = sharedPref.edit();
+					editor.remove(SettingsActivity.PREF_BLUETOOTH_DEVICE);
+					editor.apply();
+					updateDevicePreferenceSummary();
+					clearCurrentGpsManager();
+					return true;
+				}
+			});
+		}
+
+        findPreference(SettingsActivity.PREF_BLUETOOTH_DEVICE).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				clearCurrentGpsManager();
+				return true;
+			}
+		});
+	}
+
+	private void clearCurrentGpsManager() {
+		BluetoothGpsManager blueGpsMan = SharedHolder.getInstance().getBlueGpsMan();
+		if (blueGpsMan != null && blueGpsMan.isEnabled()) {
+			blueGpsMan.disable(false);
+		}
+		SharedHolder.getInstance().setBlueGpsMan(null);
+		gpsReinit = true;
 	}
 
 	@Override
 	protected void onResume() {
-		this.updateDevicePreferenceList();
+		this.updateDevicePreferenceSummary();
 		super.onResume();
 	}
 
@@ -87,32 +128,6 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         prefDevices.setSummary(getString(R.string.pref_bluetooth_device_summary, deviceName));
     } 
 
-	@SuppressWarnings("deprecation")
-	private void updateDevicePreferenceList(){
-        // update bluetooth device summary
-		updateDevicePreferenceSummary();
-		// update bluetooth device list
-        ListPreference prefDevices = (ListPreference)findPreference(SettingsActivity.PREF_BLUETOOTH_DEVICE);
-        Set<BluetoothDevice> pairedDevices = new HashSet<BluetoothDevice>();
-        if (bluetoothAdapter != null){
-        	pairedDevices = bluetoothAdapter.getBondedDevices();  
-        }
-        String[] entryValues = new String[pairedDevices.size()];
-        String[] entries = new String[pairedDevices.size()];
-        int i = 0;
-    	    // Loop through paired devices
-        for (BluetoothDevice device : pairedDevices) {
-        	// Add the name and address to the ListPreference enties and entyValues
-			SharedHolder.getInstance().getLogs().v(LOG_TAG, "device: "+device.getName() + " -- " + device.getAddress());
-        	entryValues[i] = device.getAddress();
-            entries[i] = device.getName();
-            i++;
-        }
-        prefDevices.setEntryValues(entryValues);
-        prefDevices.setEntries(entries);
-        this.onContentChanged();
-    }	
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -123,15 +138,22 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-
-		if (SettingsActivity.PREF_BLUETOOTH_DEVICE.equals(key)){
-			this.updateDevicePreferenceSummary();
-		} else if(SettingsActivity.PREF_LOGS_ENABLED.equals(key)){
-			this.enableFileLog(sharedPreferences);
-		} else if(SettingsActivity.PREF_MEASURE_UNIT.equals(key)) {
-			this.updateMeasureUnit();
+		switch (key) {
+			case SettingsActivity.PREF_BLUETOOTH_DEVICE:
+				this.gpsReinit = true;
+				this.updateDevicePreferenceSummary();
+				break;
+			case SettingsActivity.PREF_LOGS_ENABLED:
+				this.enableFileLog(sharedPreferences);
+				break;
+			case SettingsActivity.PREF_MEASURE_UNIT:
+				this.updateMeasureUnit();
+				break;
+			case SettingsActivity.PREF_EXTERNAL_CACHE:
+				this.extCacheChanged = true;
+				break;
 		}
-		this.updateDevicePreferenceList();
+		this.updateDevicePreferenceSummary();
 	}
 
 	private void enableFileLog(SharedPreferences sharedPreferences) {
@@ -154,5 +176,20 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
         builder.setView(messageView);
 		builder.show();
 	}
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		LocalBroadcastManager localBroadcast = LocalBroadcastManager.getInstance(getApplicationContext());
+		if (gpsReinit) {
+			Intent gpsReinit = new Intent(MainActivity.GPS_REINIT);
+			localBroadcast.sendBroadcast(gpsReinit);
+		}
+		if (extCacheChanged) {
+			Intent cacheReload = new Intent(MainActivity.CACHE_RELOAD);
+			localBroadcast.sendBroadcast(cacheReload);
+		}
+	}
+
 }
